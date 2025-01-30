@@ -1,5 +1,5 @@
 org: author
-service: AWS-BACKEND
+service: aws-server-template
 
 frameworkVersion: '3'
 
@@ -11,40 +11,46 @@ plugins:
 provider:
   name: aws
   runtime: nodejs18.x
-  region: us-east-2
+  region: us-east-1
   stage: dev
   profile: serverlessTemplate
   timeout: 20
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - cognito-idp:AdminCreateUser
+        - cognito-idp:AdminInitiateAuth
+        - cognito-idp:AdminRespondToAuthChallenge
+        - cognito-idp:AdminUpdateUserAttributes
+        - cognito-idp:GlobalSignOut
+        - cognito-idp:ListUsers
+      Resource:
+        - arn:aws:cognito-idp:us-east-1:884252207764:userpool/us-east-1_iLGqg20bi
 
 functions:
-  templateGet:
-    handler: src/handlers/templates/getTemplateHandler.getTemplateHandler
+  registerUser:
+    handler: src/handlers/authHandler.registerHandler
     events:
       - http:
-          path: template
-          method: get
-          cors: true
-
-  templatePost:
-    handler: src/handlers/templates/createTemplateHandler.createTemplateHandler
-    events:
-      - http:
-          path: templates
+          path: register
           method: post
-          cors: true
 
-  templatePut:
-    handler: src/handlers/templates/putTemplateHandler.putTemplateHandler
+  confirmRegister:
+    handler: src/handlers/authHandler.confirmRegisterHandler
     events:
       - http:
-          path: templates/{templateId}
-          method: put
-          cors: true
+          path: register/confirm
+          method: post
 
-  templateDelete:
-    handler: src/handlers/templates/deleteTemplateHandler.deleteTemplateHandler
+  loginUser:
+    handler: src/handlers/authHandler.loginHandler
     events:
       - http:
-          path: templates/{templateId}
-          method: delete
-          cors: true
+          path: login
+          method: post
+  logoutUser:
+    handler: src/handlers/authHandler.logoutHandler
+    events:
+      - http:
+          path: logout
+          method: post

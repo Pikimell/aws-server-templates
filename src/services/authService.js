@@ -1,9 +1,112 @@
-export const loginService = async () => {};
+import {
+  CognitoIdentityProviderClient,
+  SignUpCommand,
+  ConfirmSignUpCommand,
+  InitiateAuthCommand,
+  GlobalSignOutCommand,
+} from '@aws-sdk/client-cognito-identity-provider';
+import { CLIENT_ID } from '../helpers/constants';
+import { generateSecretHash } from '../helpers/seecretHash';
 
-export const logoutService = async () => {};
+const client = new CognitoIdentityProviderClient({ region: 'us-east-1' });
 
-export const refreshService = async () => {};
+const clientId = CLIENT_ID;
 
-export const requestResetEmailService = async () => {};
+export const register = async ({ username, password, email }) => {
+  const command = new SignUpCommand({
+    ClientId: clientId,
+    Username: username,
+    Password: password,
+    UserAttributes: [
+      { Name: 'email', Value: email },
+      { Name: 'nickname', Value: username },
+    ],
+    SecretHash: generateSecretHash(username),
+  });
 
-export const resetPasswordService = async () => {};
+  try {
+    const user = await client.send(command);
+    console.log(user);
+    return user;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+export const confirmRegister = async ({ username, code }) => {
+  const command = new ConfirmSignUpCommand({
+    ClientId: clientId,
+    Username: username,
+    ConfirmationCode: code,
+    SecretHash: generateSecretHash(username),
+  });
+
+  try {
+    const result = await client.send(command);
+    console.log(result);
+    return result;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+export const login = async ({ username, password }) => {
+  const command = new InitiateAuthCommand({
+    AuthFlow: 'USER_PASSWORD_AUTH',
+    ClientId: clientId,
+    AuthParameters: {
+      USERNAME: username,
+      PASSWORD: password,
+      SecretHash: generateSecretHash(username),
+    },
+  });
+
+  try {
+    const response = await client.send(command);
+    console.log('Login successful:', response.AuthenticationResult);
+    return {
+      accessToken: response.AuthenticationResult.AccessToken,
+      idToken: response.AuthenticationResult.IdToken,
+      refreshToken: response.AuthenticationResult.RefreshToken,
+    };
+  } catch (error) {
+    throw new Error(`Login failed: ${error.message}`);
+  }
+};
+
+export const logout = async (accessToken) => {
+  const command = new GlobalSignOutCommand({
+    AccessToken: accessToken,
+  });
+
+  try {
+    const response = await client.send(command);
+    console.log('Logout successful:', response);
+    return response;
+  } catch (error) {
+    throw new Error(`Logout failed: ${error.message}`);
+  }
+};
+
+// Функція для оновлення токенів за допомогою refreshToken
+export const refreshToken = async (refreshToken) => {
+  const command = new InitiateAuthCommand({
+    AuthFlow: 'REFRESH_TOKEN_AUTH',
+    ClientId: clientId,
+    AuthParameters: {
+      REFRESH_TOKEN: refreshToken,
+      SecretHash: generateSecretHash(refreshToken),
+    },
+  });
+
+  try {
+    const response = await client.send(command);
+    console.log('Tokens refreshed:', response.AuthenticationResult);
+    return {
+      accessToken: response.AuthenticationResult.AccessToken,
+      idToken: response.AuthenticationResult.IdToken,
+    };
+  } catch (error) {
+    throw new Error(`Token refresh failed: ${error.message}`);
+  }
+};

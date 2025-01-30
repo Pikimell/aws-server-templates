@@ -1,0 +1,8 @@
+import crypto from 'crypto';
+import { CLIENT_SEECRET, CLIENT_ID } from './constants';
+
+export function generateSecretHash(username) {
+  const hmac = crypto.createHmac('sha256', CLIENT_SEECRET);
+  hmac.update(username + CLIENT_ID);
+  return hmac.digest('base64');
+}
