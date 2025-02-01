@@ -32,25 +32,33 @@ functions:
     handler: src/handlers/authHandler.registerHandler
     events:
       - http:
-          path: register
+          path: auth/register
           method: post
 
   confirmRegister:
     handler: src/handlers/authHandler.confirmRegisterHandler
     events:
       - http:
-          path: register/confirm
+          path: auth/register/confirm
+          method: post
+
+  updateUserGroup:
+    handler: src/handlers/authHandler.updateGroupHandler
+    events:
+      - http:
+          path: auth/updateGroup
           method: post
 
   loginUser:
     handler: src/handlers/authHandler.loginHandler
     events:
       - http:
-          path: login
+          path: auth/login
           method: post
+
   logoutUser:
     handler: src/handlers/authHandler.logoutHandler
     events:
       - http:
-          path: logout
+          path: auth/logout
           method: post

@@ -17,3 +17,7 @@ export const logoutHandler = async (event, context) => {
   const ctrl = ctrlWrapper(authController.logout);
   return await ctrl(event, context);
 };
+export const updateGroupHandler = async (event, context) => {
+  const ctrl = ctrlWrapper(authController.updateGroup);
+  return await ctrl(event, context);
+};

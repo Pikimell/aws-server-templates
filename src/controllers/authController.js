@@ -23,3 +23,8 @@ export const logout = async (event) => {
   const user = await authServices.logout(data);
   return response(200)(user);
 };
+export const updateGroup = async (event) => {
+  const data = event.body;
+  const user = await authServices.updateUserGroup(data);
+  return response(200)(user);
+};

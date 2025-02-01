@@ -4,8 +4,9 @@ import {
   ConfirmSignUpCommand,
   InitiateAuthCommand,
   GlobalSignOutCommand,
+  AdminAddUserToGroupCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
-import { CLIENT_ID } from '../helpers/constants';
+import { CLIENT_ID, USER_POOL_ID } from '../helpers/constants';
 import { generateSecretHash } from '../helpers/seecretHash';
 
 const client = new CognitoIdentityProviderClient({ region: 'us-east-1' });
@@ -26,14 +27,13 @@ export const register = async ({ username, password, email }) => {
 
   try {
     const user = await client.send(command);
-    console.log(user);
     return user;
   } catch (error) {
     throw new Error(error.message);
   }
 };
 
-export const confirmRegister = async ({ username, code }) => {
+export const confirmRegister = async ({ username, code, group }) => {
   const command = new ConfirmSignUpCommand({
     ClientId: clientId,
     Username: username,
@@ -43,7 +43,7 @@ export const confirmRegister = async ({ username, code }) => {
 
   try {
     const result = await client.send(command);
-    console.log(result);
+    await updateUserGroup({ username, group });
     return result;
   } catch (error) {
     throw new Error(error.message);
@@ -57,7 +57,7 @@ export const login = async ({ username, password }) => {
     AuthParameters: {
       USERNAME: username,
       PASSWORD: password,
-      SecretHash: generateSecretHash(username),
+      SECRET_HASH: generateSecretHash(username),
     },
   });
 
@@ -109,4 +109,18 @@ export const refreshToken = async (refreshToken) => {
   } catch (error) {
     throw new Error(`Token refresh failed: ${error.message}`);
   }
+};
+
+export const updateUserGroup = async ({ username, group }) => {
+  if (!group) return;
+
+  const addUserToGroupCommand = new AdminAddUserToGroupCommand({
+    UserPoolId: USER_POOL_ID,
+    Username: username,
+    GroupName: group,
+  });
+
+  const res = await client.send(addUserToGroupCommand);
+  console.log(`User added to group: ${group}`);
+  return res;
 };
