@@ -13,20 +13,16 @@ provider:
   runtime: nodejs18.x
   region: us-east-1
   stage: dev
-  profile: serverlessTemplate
+  profile: serverlessUser
   timeout: 20
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - cognito-idp:AdminCreateUser
-        - cognito-idp:AdminInitiateAuth
-        - cognito-idp:AdminRespondToAuthChallenge
-        - cognito-idp:AdminUpdateUserAttributes
-        - cognito-idp:GlobalSignOut
-        - cognito-idp:ListUsers
+        - cognito-idp:*
       Resource:
         - arn:aws:cognito-idp:us-east-1:884252207764:userpool/us-east-1_iLGqg20bi
 
+#====================================================================
 functions:
   registerUser:
     handler: src/handlers/authHandler.registerHandler
@@ -62,3 +58,37 @@ functions:
       - http:
           path: auth/logout
           method: post
+  #====================================================================
+
+  test:
+    handler: src/handlers/testHandler.testHandler
+    events:
+      - http:
+          path: test
+          method: post
+          authorizer:
+            name: CognitoAuth
+            type: COGNITO_USER_POOLS
+            arn: arn:aws:cognito-idp:us-east-1:884252207764:userpool/us-east-1_iLGqg20bi
+
+  test2:
+    handler: src/handlers/testHandler.testHandler2
+    events:
+      - http:
+          path: test2
+          method: post
+          authorizer:
+            name: CognitoAuth
+            type: COGNITO_USER_POOLS
+            arn: arn:aws:cognito-idp:us-east-1:884252207764:userpool/us-east-1_iLGqg20bi
+
+  test3:
+    handler: src/handlers/testHandler.testHandler3
+    events:
+      - http:
+          path: test3
+          method: post
+          authorizer:
+            name: CognitoAuth
+            type: COGNITO_USER_POOLS
+            arn: arn:aws:cognito-idp:us-east-1:884252207764:userpool/us-east-1_iLGqg20bi
